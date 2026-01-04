@@ -1,5 +1,5 @@
 FROM node:18-slim
-RUN useradd -m -u 1000 appuser
+RUN useradd -m appuser
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
