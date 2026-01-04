@@ -28,29 +28,24 @@ services:
       retries: 5
 
   vote:
-    build:
-      context: ./vote
-      dockerfile: Dockerfile
+    image: voting-app-vote
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
     ports:
       - "8080:8080"
     depends_on:
-      redis:
-        condition: service_healthy
+      - redis
     networks:
       - frontend
       - backend
     deploy:
       replicas: 2
       restart_policy:
-        condition: on-failure 
+        condition: on-failure
 
   worker:
-    build:
-      context: ./worker
-      dockerfile: Dockerfile
+    image: voting-app-worker
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_USER: postgres
@@ -58,18 +53,16 @@ services:
       POSTGRES_DB: postgres
       REDIS_HOST: redis
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - postgres
+      - redis
     networks:
       - backend
-    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
 
   result:
-    build:
-      context: ./result
-      dockerfile: Dockerfile
+    image: voting-app-result
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_USER: postgres
@@ -78,15 +71,14 @@ services:
     ports:
       - "8888:8888"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     networks:
       - frontend
       - backend
     deploy:
       replicas: 2
       restart_policy:
-        condition: on-failure 
+        condition: on-failure
 
 volumes:
   postgres_data:
