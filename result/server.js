@@ -22,8 +22,14 @@ io.sockets.on("connection", function (socket) {
   })
 })
 
+const postgresHost = process.env.POSTGRES_HOST || "localhost";
+const postgresUser = process.env.POSTGRES_USER || "postgres";
+const postgresPassword = process.env.POSTGRES_PASSWORD || "postgres";
+const postgresDb = process.env.POSTGRES_DB || "postgres";
+
+
 const pool = new pg.Pool({
-  connectionString: "postgres://postgres:postgres@localhost/postgres",
+  connectionString: `postgres://${postgresUser}:${postgresPassword}@${postgresHost}/${postgresDb}`,
 })
 
 async.retry(

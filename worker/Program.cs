@@ -16,8 +16,15 @@ namespace Worker
         {
             try
             {
-                var pgsql = OpenDbConnection("Server=localhost;Username=postgres;Password=postgres;");
-                var redisConn = OpenRedisConnection("localhost");
+                var postgresHost = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost";
+                var postgresUser = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres";
+                var postgresPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "postgres";
+                var postgresDb = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "postgres";
+                var connectionString = $"Server={postgresHost};Username={postgresUser};Password={postgresPassword};Database={postgresDb};";
+                var pgsql = OpenDbConnection(connectionString);
+
+                var redisHost = Environment.GetEnvironmentVariable("REDIS_HOST") ?? "localhost";
+                var redisConn = OpenRedisConnection(redisHost);
                 var redis = redisConn.GetDatabase();
 
                 var keepAliveCommand = pgsql.CreateCommand();
@@ -31,7 +38,7 @@ namespace Worker
                     // Se reconnecter à Redis si la connexion est perdue
                     if (redisConn == null || !redisConn.IsConnected) {
                         Console.WriteLine("Reconnecting Redis");
-                        redisConn = OpenRedisConnection("localhost");
+                        redisConn = OpenRedisConnection(redisHost);
                         redis = redisConn.GetDatabase();
                     }
                     string json = redis.ListLeftPopAsync("votes").Result;
@@ -44,7 +51,7 @@ namespace Worker
                         if (!pgsql.State.Equals(System.Data.ConnectionState.Open))
                         {
                             Console.WriteLine("Reconnecting DB");
-                            pgsql = OpenDbConnection("Server=localhost;Username=postgres;Password=postgres;");
+                            pgsql = OpenDbConnection(connectionString);
                         }
                         else
                         {
